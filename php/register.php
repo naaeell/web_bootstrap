@@ -6,11 +6,7 @@ session_start();
 $name = $email = $password = "";
 $name_err = $email_err = $password_err = "";
 
-// Database connection parameters
-$host = 'localhost'; // Your database host
-$dbname = 'web';     // Your database name
-$db_username = 'root'; // Your database username
-$db_password = ''; // Your database password
+include 'auth.php'; // Include your database connection
 
 // Process form data when submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -25,14 +21,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty(trim($_POST["email"]))) {
         $email_err = "Mohon masukkan email.";
     } elseif (!filter_var(trim($_POST["email"]), FILTER_VALIDATE_EMAIL)) {
-        $email_err = "Invalid email format.";
+        $email_err = "Format email tidak valid.";
     } else {
         $email = trim($_POST["email"]);
     }
 
     // Validate password
     if (empty(trim($_POST["password"]))) {
-        $password_err = "Mohon masukkan password";
+        $password_err = "Mohon masukkan password.";
     } else {
         $password = trim($_POST["password"]);
     }
@@ -40,11 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Check input errors before inserting into database
     if (empty($name_err) && empty($email_err) && empty($password_err)) {
         try {
-            // Create a new PDO instance
-            $pdo = new PDO("mysql:host=$host;dbname=$dbname", $db_username, $db_password);
-            // Set the PDO error mode to exception
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
             // Prepare an insert statement
             $sql = "INSERT INTO akun (username, email, password) VALUES (:username, :email, :password)";
             $stmt = $pdo->prepare($sql);
@@ -64,7 +55,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
 
         } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
+            // Handle any errors during the insert
+            if ($e->getCode() == 23000) {
+                $email_err = "Email sudah terdaftar."; // Duplicate entry error
+            } else {
+                echo "Error: " . $e->getMessage();
+            }
         }
     }
 }

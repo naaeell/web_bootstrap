@@ -2,19 +2,7 @@
 // Start the session
 session_start();
 
-// Database configuration
-$host = 'localhost'; // Your database host
-$db   = 'web';       // Your database name
-$user = 'root';      // Your database username
-$pass = '';          // Your database password
-
-// Create a new PDO instance
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+include 'auth.php'; // Make sure this file connects to the database
 
 // Define variables and initialize with empty values
 $username = $password = "";
@@ -51,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     // Fetch the row
                     $row = $stmt->fetch(PDO::FETCH_ASSOC);
                     
-                    // Check if the password matches using password_verify
+                    // Check if the password matches
                     if (password_verify($password, $row['password'])) {
                         // Password is correct, start a new session
                         $_SESSION['loggedin'] = true;
@@ -65,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $username_err = "Username atau password salah";
                 }
             } else {
-                echo "error bang";
+                echo "Error executing statement.";
             }
         }
     }
